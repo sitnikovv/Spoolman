@@ -1,43 +1,43 @@
-# Запуск версии с OpenSpool QR на NAS
+# Запуск версии с OpenSpool QR на Synology NAS
 
-Файл `compose.nas.yaml` собирает новый интерфейс из ветки этого форка и
-накладывает его на официальный серверный образ Spoolman 0.26.1. База данных и
-старый интерфейс при этом не изменяются.
+Файл `compose.nas.yaml` предназначен для прямой замены текущего compose-проекта
+Synology. Он получает исходный код из ветки
+`deploy/openspool-qr-nas`, собирает новый интерфейс и накладывает его на
+официальный серверный образ Spoolman 0.26.1. База данных и старый интерфейс при
+этом не изменяются.
 
 ## Перед переключением контейнера
 
-1. В Synology Container Manager откройте действующий контейнер Spoolman.
-2. Запишите его переменные `PUID`, `PGID`, `TZ` и внешний порт.
-3. Найдите подключение каталога к
-   `/home/app/.local/share/spoolman`. Нужен путь на NAS из левой части этого
-   подключения.
-4. Сделайте резервную копию каталога. Для SQLite достаточно копии файла
+1. В Synology Container Manager остановите действующий контейнер Spoolman.
+2. Сделайте резервную копию каталога `data`. Для SQLite достаточно копии файла
    `spoolman.db`, созданной после остановки контейнера.
+3. Убедитесь, что compose-проект остаётся в прежнем каталоге: относительный путь
+   `./data` должен указывать на существующую базу.
 
-Новый compose-файл намеренно требует явный `SPOOLMAN_DATA_DIR`: это защищает от
-случайного запуска с пустой базой вместо существующей.
+Нельзя одновременно запускать старый и новый контейнер с одной базой.
 
-## Сборка из консоли NAS
+## Обновление проекта в Container Manager
 
-```bash
-git clone --branch deploy/openspool-qr-nas https://github.com/sitnikovv/Spoolman.git
-cd Spoolman
-cp .env.nas.example .env.nas
+1. Откройте `Container Manager` → `Проект` и выберите проект Spoolman.
+2. Откройте YAML-конфигурацию проекта.
+3. Замените её содержимым файла `compose.nas.yaml`.
+4. Выполните сборку и запуск проекта.
+
+Docker получает репозиторий по адресу:
+
+```text
+https://github.com/sitnikovv/Spoolman.git#deploy/openspool-qr-nas
 ```
 
-Отредактируйте `.env.nas`, подставив параметры действующего контейнера, затем
-соберите образ, не останавливая работающий Spoolman:
+## Запуск из консоли NAS
+
+Поместите `compose.nas.yaml` в каталог прежнего compose-проекта, рядом с
+существующим каталогом `data`, и выполните:
 
 ```bash
-docker compose --env-file .env.nas -f compose.nas.yaml build
-```
-
-После успешной сборки остановите старый контейнер в Container Manager и
-запустите новый:
-
-```bash
-docker compose --env-file .env.nas -f compose.nas.yaml up -d
-docker compose --env-file .env.nas -f compose.nas.yaml logs --tail=100
+docker compose -f compose.nas.yaml build --pull
+docker compose -f compose.nas.yaml up -d
+docker compose -f compose.nas.yaml logs --tail=100
 ```
 
 Откройте `http://192.168.7.250:7912`, выберите катушку и нажмите
@@ -48,7 +48,7 @@ docker compose --env-file .env.nas -f compose.nas.yaml logs --tail=100
 Если новый контейнер не запускается, выполните:
 
 ```bash
-docker compose --env-file .env.nas -f compose.nas.yaml down
+docker compose -f compose.nas.yaml down
 ```
 
 После этого снова запустите прежний контейнер. Пока оба контейнера используют
