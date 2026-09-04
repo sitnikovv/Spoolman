@@ -7,7 +7,7 @@ FROM node:24-bookworm-slim AS openspool-client-builder
 WORKDIR /build/client_v2
 
 COPY client_v2/package.json client_v2/package-lock.json ./
-RUN --mount=type=cache,target=/root/.npm npm ci
+RUN npm ci
 
 COPY client_v2/ ./
 RUN npm run build
