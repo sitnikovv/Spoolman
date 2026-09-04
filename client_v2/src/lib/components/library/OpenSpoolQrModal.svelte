@@ -1,9 +1,7 @@
 <script lang="ts">
-	/* eslint-disable svelte/no-navigation-without-resolve -- the download link is a generated data URL. */
 	import { untrack } from 'svelte';
 	import QRCode from 'qrcode';
 	import X from '@lucide/svelte/icons/x';
-	import Download from '@lucide/svelte/icons/download';
 	import type { Filament, Spool, Vendor } from '$lib/types';
 	import { buildOpenSpoolProfile, encodeOpenSpoolQr, type OpenSpoolProfile } from '$lib/openspool/qr';
 	import * as m from '$lib/paraglide/messages';
@@ -119,9 +117,7 @@
 
 					{#if image}
 						<img src={image} alt="OpenSpool QR" />
-						<a class="download" href={image} download={`openspool-${spool.id}.png`} title="PNG">
-							<Download size={16} /> PNG
-						</a>
+						<button class="confirm" type="button" onclick={close}>OK</button>
 					{:else}
 						<div class="loading">{m['loading']()}…</div>
 					{/if}
@@ -234,20 +230,20 @@
 		background: #fff;
 		border-radius: var(--radius);
 	}
-	.download {
+	.confirm {
 		display: inline-flex;
 		align-items: center;
-		gap: 6px;
 		margin-top: 14px;
 		padding: 8px 13px;
 		color: #fff;
 		background: var(--accent-fill);
+		border: none;
 		border-radius: var(--radius);
 		font-size: 12.5px;
 		font-weight: 600;
-		text-decoration: none;
+		cursor: pointer;
 	}
-	.download:hover {
+	.confirm:hover {
 		background: var(--accent-fill-hover);
 	}
 	.loading,
