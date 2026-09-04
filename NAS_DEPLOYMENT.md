@@ -27,7 +27,7 @@ Synology. Он получает исходный код из исправлен�
 Docker получает репозиторий по адресу:
 
 ```text
-https://github.com/sitnikovv/Spoolman.git#092d328eb706e41435ff2cd7fa3b150b5c66536e
+https://github.com/sitnikovv/Spoolman.git#a3cf44d77b9dd8942b3fef25cc79c1002225636e
 ```
 
 ## Запуск из консоли NAS
