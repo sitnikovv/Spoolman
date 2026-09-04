@@ -2,9 +2,9 @@ version: '3.8'
 
 services:
   spoolman:
-    image: spoolman-openspool:0.26.1
+    image: spoolman-openspool:0.26.1-092d328
     build:
-      context: https://github.com/sitnikovv/Spoolman.git#deploy/openspool-qr-nas
+      context: https://github.com/sitnikovv/Spoolman.git#092d328eb706e41435ff2cd7fa3b150b5c66536e
       dockerfile: Dockerfile.openspool
       args:
         SPOOLMAN_VERSION: '0.26.1'
