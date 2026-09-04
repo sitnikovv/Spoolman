@@ -1,5 +1,6 @@
 <script lang="ts">
 	/* eslint-disable svelte/no-navigation-without-resolve -- the download link is a generated data URL. */
+	import { untrack } from 'svelte';
 	import QRCode from 'qrcode';
 	import X from '@lucide/svelte/icons/x';
 	import Download from '@lucide/svelte/icons/download';
@@ -34,7 +35,11 @@
 		image = '';
 		error = '';
 		try {
-			const nextProfile = buildOpenSpoolProfile({ spool, filament, vendor });
+			// Keep the QR stable while the modal is open. Live inventory updates replace
+			// the spool/filament objects frequently; tracking them here would clear and
+			// regenerate the image on every update, making it visibly blink. Reopening
+			// the modal still takes a fresh snapshot of the current values.
+			const nextProfile = untrack(() => buildOpenSpoolProfile({ spool, filament, vendor }));
 			profile = nextProfile;
 			const payload = encodeOpenSpoolQr(nextProfile);
 			QRCode.toDataURL(payload, {
