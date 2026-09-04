@@ -1,0 +1,23 @@
+# syntax=docker/dockerfile:1
+
+ARG SPOOLMAN_VERSION=0.26.1
+
+FROM node:24-bookworm-slim AS openspool-client-builder
+
+WORKDIR /build/client_v2
+
+COPY client_v2/package.json client_v2/package-lock.json ./
+RUN --mount=type=cache,target=/root/.npm npm ci
+
+COPY client_v2/ ./
+RUN npm run build
+
+FROM ghcr.io/donkie/spoolman:${SPOOLMAN_VERSION}
+
+LABEL org.opencontainers.image.source="https://github.com/sitnikovv/Spoolman"
+LABEL org.opencontainers.image.description="Spoolman с генератором OpenSpool QR"
+
+# Сервер и старый интерфейс берутся из официального образа той же версии.
+# Новый интерфейс собирается из этого форка и заменяется целиком.
+COPY --from=openspool-client-builder --chown=app:app \
+    /build/client_v2/build /home/app/spoolman/client_v2/build

@@ -1,5 +1,7 @@
 client/node_modules
 client_v2/node_modules
+client_v2/.svelte-kit
+client_v2/build
 
 *.egg-info
 *.egg/

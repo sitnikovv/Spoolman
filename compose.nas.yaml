@@ -1,0 +1,19 @@
+name: spoolman-openspool
+
+services:
+  spoolman:
+    image: sitnikovv/spoolman:openspool-qr
+    build:
+      context: .
+      dockerfile: Dockerfile.openspool
+      args:
+        SPOOLMAN_VERSION: ${SPOOLMAN_VERSION:-0.26.1}
+    restart: unless-stopped
+    ports:
+      - "${SPOOLMAN_HTTP_PORT:-7912}:8000"
+    environment:
+      TZ: ${TZ:-Europe/Moscow}
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+    volumes:
+      - ${SPOOLMAN_DATA_DIR:?Укажите существующий каталог данных Spoolman в файле .env.nas}:/home/app/.local/share/spoolman
