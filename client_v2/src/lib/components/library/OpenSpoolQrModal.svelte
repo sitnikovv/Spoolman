@@ -8,7 +8,7 @@
 
 	interface Props {
 		open: boolean;
-		spool: Spool;
+		spool?: Spool;
 		filament: Filament;
 		vendor?: Vendor;
 		onclose: () => void;

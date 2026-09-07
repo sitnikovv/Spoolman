@@ -75,6 +75,13 @@ describe('OpenSpool QR', () => {
 		expect(profile.bed_temp_min_c).toBeUndefined();
 	});
 
+	it('builds a profile directly from a filament when there is no spool yet', () => {
+		const profile = buildOpenSpoolProfile({ filament, vendor });
+		expect(profile.weight_g).toBe(1000);
+		expect(profile.brand).toBe('Conjure');
+		expect(profile.name).toBe('Silk PLA (Red Blue Green)');
+	});
+
 	it('uses a verified profile stored in the filament extra field', () => {
 		const verified = {
 			schema_version: '1',

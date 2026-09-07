@@ -25,7 +25,7 @@ export interface OpenSpoolProfile {
 }
 
 export interface OpenSpoolProfileContext {
-	spool: Spool;
+	spool?: Spool;
 	filament: Filament;
 	vendor?: Vendor;
 }
@@ -124,7 +124,10 @@ export function buildOpenSpoolProfile({
 		nozzle_temp_max_c: positiveInteger(override?.nozzle_temp_max_c) ?? positiveInteger(filament.nozzleTemp),
 		bed_temp_min_c: positiveInteger(override?.bed_temp_min_c),
 		bed_temp_max_c: positiveInteger(override?.bed_temp_max_c) ?? positiveInteger(filament.bedTemp),
-		weight_g: positiveInteger(override?.weight_g) ?? positiveInteger(spool.initial),
+		weight_g:
+			positiveInteger(override?.weight_g) ??
+			positiveInteger(spool?.initial) ??
+			positiveInteger(filament.weight),
 		source_url: text(override?.source_url)
 	};
 
