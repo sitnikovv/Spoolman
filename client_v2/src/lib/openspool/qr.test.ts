@@ -1,7 +1,6 @@
-import { gunzipSync, strFromU8 } from 'fflate';
 import { describe, expect, it } from 'vitest';
 import type { Filament, Spool, Vendor } from '$lib/types';
-import { buildOpenSpoolProfile, encodeOpenSpoolQr, OPEN_SPOOL_QR_PREFIX } from './qr';
+import { buildOpenSpoolProfile, encodeOpenSpoolQr } from './qr';
 
 const spool: Spool = {
 	id: 9,
@@ -46,14 +45,6 @@ const vendor: Vendor = {
 	registeredLabel: '',
 	extra: {}
 };
-
-function decodePayload(payload: string) {
-	const encoded = payload.slice(OPEN_SPOOL_QR_PREFIX.length).replace(/-/g, '+').replace(/_/g, '/');
-	const padded = encoded.padEnd(Math.ceil(encoded.length / 4) * 4, '=');
-	const binary = atob(padded);
-	const compressed = Uint8Array.from(binary, (character) => character.charCodeAt(0));
-	return JSON.parse(strFromU8(gunzipSync(compressed)));
-}
 
 describe('OpenSpool QR', () => {
 	it('maps only values available in Spoolman and does not invent minimum temperatures', () => {
@@ -107,11 +98,25 @@ describe('OpenSpool QR', () => {
 		expect(buildOpenSpoolProfile({ spool, filament: withOverride, vendor })).toEqual(verified);
 	});
 
-	it('encodes a gzip plus base64url OSQ1 envelope', () => {
+	it('encodes compact OpenSpool JSON ready for the NFC record', () => {
 		const profile = buildOpenSpoolProfile({ spool, filament, vendor });
 		const payload = encodeOpenSpoolQr(profile);
-		expect(payload).toMatch(/^OSQ1:[A-Za-z0-9_-]+$/);
-		expect(decodePayload(payload)).toEqual({ format: 'openspool-qr', version: 1, profile });
+		expect(payload).toBe(JSON.stringify(JSON.parse(payload)));
+		expect(JSON.parse(payload)).toEqual({
+			protocol: 'openspool',
+			version: '1.0',
+			brand: 'Conjure',
+			type: 'PLA',
+			subtype: 'Silk',
+			color_hex: '#FF0000',
+			additional_color_hexes: ['#0000FF', '#00FF00'],
+			max_temp: 230,
+			bed_max_temp: 60,
+			diameter: 1.75,
+			weight: 1000
+		});
+		expect(payload).not.toContain('schema_version');
+		expect(payload).not.toContain('name');
 	});
 
 	it('refuses to silently truncate unsupported colors', () => {

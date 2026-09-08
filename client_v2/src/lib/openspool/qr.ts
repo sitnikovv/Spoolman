@@ -1,8 +1,6 @@
-import { gzipSync, strToU8 } from 'fflate';
 import type { Filament, Spool, Vendor } from '$lib/types';
 
 export const OPEN_SPOOL_PROFILE_EXTRA_KEY = 'openspool_profile';
-export const OPEN_SPOOL_QR_PREFIX = 'OSQ1:';
 
 const COLOR_PATTERN = /^#[0-9A-F]{6}$/;
 
@@ -30,10 +28,20 @@ export interface OpenSpoolProfileContext {
 	vendor?: Vendor;
 }
 
-interface OpenSpoolEnvelope {
-	format: 'openspool-qr';
-	version: 1;
-	profile: OpenSpoolProfile;
+export interface OpenSpoolPayload {
+	protocol: 'openspool';
+	version: '1.0';
+	brand: string;
+	type: string;
+	subtype?: string;
+	color_hex: string;
+	additional_color_hexes?: string[];
+	min_temp?: number;
+	max_temp?: number;
+	bed_min_temp?: number;
+	bed_max_temp?: number;
+	diameter?: number;
+	weight?: number;
 }
 
 function decodeExtraValue(value: string | undefined): unknown {
@@ -168,22 +176,31 @@ export function validateOpenSpoolProfile(profile: OpenSpoolProfile): void {
 	}
 }
 
-function base64Url(bytes: Uint8Array): string {
-	let binary = '';
-	const chunkSize = 0x8000;
-	for (let offset = 0; offset < bytes.length; offset += chunkSize) {
-		binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
-	}
-	return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+export function toOpenSpoolPayload(profile: OpenSpoolProfile): OpenSpoolPayload {
+	validateOpenSpoolProfile(profile);
+	const payloadWithEmptyValues: OpenSpoolPayload = {
+		protocol: 'openspool',
+		version: '1.0',
+		brand: profile.brand.trim(),
+		type: profile.type.trim().toUpperCase(),
+		subtype: profile.subtype?.trim() || undefined,
+		color_hex: profile.color_hex.toUpperCase(),
+		additional_color_hexes: profile.additional_color_hexes?.length
+			? profile.additional_color_hexes.map((entry) => entry.toUpperCase())
+			: undefined,
+		min_temp: profile.nozzle_temp_min_c,
+		max_temp: profile.nozzle_temp_max_c,
+		bed_min_temp: profile.bed_temp_min_c,
+		bed_max_temp: profile.bed_temp_max_c,
+		diameter: profile.diameter_mm,
+		weight: profile.weight_g
+	};
+
+	return Object.fromEntries(
+		Object.entries(payloadWithEmptyValues).filter(([, value]) => value != null && value !== '')
+	) as unknown as OpenSpoolPayload;
 }
 
 export function encodeOpenSpoolQr(profile: OpenSpoolProfile): string {
-	validateOpenSpoolProfile(profile);
-	const envelope: OpenSpoolEnvelope = {
-		format: 'openspool-qr',
-		version: 1,
-		profile: { ...profile, schema_version: '1' }
-	};
-	const compressed = gzipSync(strToU8(JSON.stringify(envelope)), { level: 9 });
-	return `${OPEN_SPOOL_QR_PREFIX}${base64Url(compressed)}`;
+	return JSON.stringify(toOpenSpoolPayload(profile));
 }
