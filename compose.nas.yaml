@@ -2,9 +2,9 @@ version: '3.8'
 
 services:
   spoolman:
-    image: spoolman-openspool:0.26.1-05ee487
+    image: spoolman-openspool:0.26.1-dc4f7ef
     build:
-      context: https://github.com/sitnikovv/Spoolman.git#05ee48793701520555568de95366ddcdecd7b856
+      context: https://github.com/sitnikovv/Spoolman.git#dc4f7efe30e6551278143c52b067aa71c4eeafe9
       dockerfile: Dockerfile.openspool
       args:
         SPOOLMAN_VERSION: '0.26.1'
